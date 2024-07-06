@@ -15,32 +15,32 @@ error_exit() {
     echo "$1" 1>&2
     echo "An error occurred. Please check the log file at ${LOG_FILE} for more details."
     exit 1
+}
 
-
-monogo_systemd() {
+mongo_systemd() {
     sudo systemctl daemon-reload
-sudo systemctl enable mongod
-sudo systemctl start mongod
-sudo systemctl status mongod
+    sudo systemctl enable mongod
+    sudo systemctl start mongod
+    sudo systemctl status mongod
 }
 
 graylog_systemd() {
     sudo systemctl daemon-reload
-sudo systemctl enable graylog-server.service
-sudo systemctl start graylog-server.service
-sudo systemctl --type=service --state=active | grep graylog
+    sudo systemctl enable graylog-server.service
+    sudo systemctl start graylog-server.service
+    sudo systemctl --type=service --state=active | grep graylog
 }
 
 OpenSearch_install() {
     sudo curl -SL https://artifacts.opensearch.org/releases/bundle/opensearch/2.x/opensearch-2.x.repo -o /etc/yum.repos.d/opensearch-2.x.repo
-sudo sed -i "s/^gpgcheck=.*/gpgcheck=0/g" /etc/yum.repos.d/opensearch-2.x.repo
-sudo OPENSEARCH_INITIAL_ADMIN_PASSWORD=$(tr -dc A-Z-a-z-0-9_@#%^-_=+ < /dev/urandom  | head -c${1:-32}) yum -y install opensearch
+    sudo sed -i "s/^gpgcheck=.*/gpgcheck=0/g" /etc/yum.repos.d/opensearch-2.x.repo
+    sudo OPENSEARCH_INITIAL_ADMIN_PASSWORD=$(tr -dc A-Z-a-z-0-9_@#%^-_=+ < /dev/urandom | head -c${1:-32}) yum -y install opensearch
 }
 
 # -----------------------------------------------------------------------------------------------
 
 echo "[+] Checking for root permissions"
-if [ "$EUID" -ne 0 ];then
+if [ "$EUID" -ne 0 ]; then
     echo "Please run this script as root"
     exit 1
 fi
@@ -54,7 +54,7 @@ dnf upgrade -y
 mv "$CURDIR/$SUBFOLDER/mongodb-org.repo" /etc/yum.repos.d/mongodb-org.repo
 sudo yum install -y mongodb-org
 sudo yum versionlock add mongodb-org
-monogo_systemd
+mongo_systemd
 
 # -----------------------------------------------------------------------------------------------
 
@@ -98,17 +98,17 @@ sudo yum install graylog-server
 sudo yum versionlock add graylog-server-6.0
 
 # Create Secrets
-SECRET=`pwgen -N 1 -s 96`
-echo -n "Enter Admin wenb interface Password: "
+SECRET=$(pwgen -N 1 -s 96)
+echo -n "Enter Admin web interface Password: "
 read passwd
-ADMIN=`echo $passwd| tr -d '\n' | sha256sum | cut -d" " -f1`
-echo "Generated password salt is " $secret
-echo "Genberated admin hash is " $admin
+ADMIN=$(echo $passwd | tr -d '\n' | sha256sum | cut -d" " -f1)
+echo "Generated password salt is $SECRET"
+echo "Generated admin hash is $ADMIN"
 
 # Apply Secrets
 echo "[+] Adjusting Graylog Server configuration file"
-CONFIGSECRET=`echo "password_secret = "$SECRET`
-CONFIGADMIN=`echo "root_password_sha2 = "$ADMIN`
+CONFIGSECRET="password_secret = $SECRET"
+CONFIGADMIN="root_password_sha2 = $ADMIN"
 echo "[+] replacing in configuration files"
 sed -r "s/password_secret =/${CONFIGSECRET}/g" -i /etc/graylog/server/server.conf
 sed -r "s/root_password_sha2 =/${CONFIGADMIN}/g" -i /etc/graylog/server/server.conf
@@ -116,4 +116,3 @@ sed -i 's/#http_bind_address = 127.0.0.1:9000/http_bind_address = 0.0.0.0:9000/g
 
 # Graylog systemd commands
 graylog_systemd
-

@@ -118,3 +118,8 @@ sed -i 's/#http_bind_address = 127.0.0.1:9000/http_bind_address = 0.0.0.0:9000/g
 
 # Graylog systemd commands
 graylog_systemd
+
+# Job's Done
+echo "[+] Graylog has been successfully installed. It should be accessible at http://${HOST_IP}:9000"
+
+

@@ -16,8 +16,31 @@
 
 ## :x: Problem
 
+I've used [**Graylog**](https://graylog.org/) for about a year and loved it. The issue is I don't like to copy pasta commands and prefer to install a base via a script and configure it.
+
 ## :heavy_check_mark: Solution
+
+The Answer to that is **Graylogger**. I created this script to Automate the process and get a nice clean base setup to configure to my needs as I go on. 
 
 ## :gear: Instructions
 
+- Clone the Repo.
+
+```bash
+git clone https://github.com/ColoredBytes/Graylogger.git
+```
+- Run the script.
+
+```bash
+./Graylogger/install.sh
+```
+
+
+
 ## :memo: Notes
+> [!CAUTION]
+> This a RPM Based script will not work on Ubutnu ATM. Till I find time to work on that part.
+
+>[!NOTE]
+> You will still need to configure `/etc/opensearch/opensearch.yml` and `/etc/graylog/server/server.conf` and possibly `/etc/opensearch/jvm.options`. I have it set to 8GB of Ram as that half of the recconmnded amount of RAM.
+> - You can find info on this [here](https://go2docs.graylog.org/current/downloading_and_installing_graylog/red_hat_installation.htm?tocpath=Installing%20Graylog%7COperating%20System%20Packages%7C_____2).

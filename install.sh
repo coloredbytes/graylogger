@@ -34,7 +34,7 @@ graylog_systemd() {
 OpenSearch_install() {
     sudo curl -SL https://artifacts.opensearch.org/releases/bundle/opensearch/2.x/opensearch-2.x.repo -o /etc/yum.repos.d/opensearch-2.x.repo
     sudo sed -i "s/^gpgcheck=.*/gpgcheck=0/g" /etc/yum.repos.d/opensearch-2.x.repo
-    sudo OPENSEARCH_INITIAL_ADMIN_PASSWORD=$(tr -dc A-Z-a-z-0-9_@#%^-_=+ < /dev/urandom | head -c${1:-32}) yum -y install opensearch
+    sudo OPENSEARCH_INITIAL_ADMIN_PASSWORD=$(tr -dc A-Z-a-z-0-9_@#%^-_=+ < /dev/urandom | head -c${1:-32}) dnf -y install opensearch
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -45,15 +45,17 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Install Versionlock
 echo "[+] Checking for updates"
-dnf upgrade -y
+sudo dnf check-update
+sudo dnf install -y 'dnf-command(versionlock)'
 
 # -----------------------------------------------------------------------------------------------
 
 # MongoDB Install
 mv "$CURDIR/$SUBFOLDER/mongodb-org.repo" /etc/yum.repos.d/mongodb-org.repo
-sudo yum install -y mongodb-org
-sudo yum versionlock add mongodb-org
+sudo dnf install -y mongodb-org
+sudo dnf versionlock add mongodb-org
 mongo_systemd
 
 # -----------------------------------------------------------------------------------------------
@@ -94,16 +96,16 @@ systemctl start opensearch.service
 
 # Graylog Install
 sudo rpm -Uvh https://packages.graylog2.org/repo/packages/graylog-6.0-repository_latest.rpm
-sudo yum install graylog-server
-sudo yum versionlock add graylog-server-6.0
+sudo dnf install graylog-server
+sudo dnf versionlock add graylog-server-6.0
 
 # Create Secrets
-SECRET=$(pwgen -N 1 -s 96)
+SECRET=$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c${1:-96}; echo)
 echo -n "Enter Admin web interface Password: "
-read passwd
-ADMIN=$(echo $passwd | tr -d '\n' | sha256sum | cut -d" " -f1)
+ADMIN=$(head -1 </dev/stdin | tr -d '\n' | sha256sum | cut -d" " -f1)
 echo "Generated password salt is $SECRET"
 echo "Generated admin hash is $ADMIN"
+
 
 # Apply Secrets
 echo "[+] Adjusting Graylog Server configuration file"

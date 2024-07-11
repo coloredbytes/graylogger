@@ -27,7 +27,7 @@ The Answer to that is **Graylogger**. I created this script to Automate the proc
 - Clone the Repo.
 
 ```bash
-git clone https://github.com/ColoredBytes/Graylogger.git
+git clone https://github.com/ColoredBytes/graylogger.git
 ```
 - Run the script.
 
